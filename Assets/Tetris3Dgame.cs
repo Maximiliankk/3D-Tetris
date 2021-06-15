@@ -5,18 +5,25 @@ using UnityEngine;
 
 public class Tetris3Dgame : MonoBehaviour
 {
-    float cameraHeight = 5;
-    float cameraDist = 5;
+    float camYaw = -30;
+    float camPitch = -30;
+    float cameraDist = 30;
+    Vector3 mousePrevPos;
 
     int gameSpeed = 100;
     int gameCountdown = 0;
 
-    const int gridXZdims = 10;
-    const int gridYdim = 20;
+    int points = 0;
+    public UnityEngine.UI.Text pointsText;
+    float boundsThickness = 0.2f;
+
+    const int gridXZdims = 6;
+    const int gridYdim = 10;
     List<List<List<int>>> grid = new List<List<List<int>>>();
     List<List<List<GameObject>>> gridObjs = new List<List<List<GameObject>>>();
 
     List<Vector3Int> curPiece = new List<Vector3Int>();
+    Vector3 centroid = Vector3.zero;
 
     /*
     
@@ -79,22 +86,22 @@ public class Tetris3Dgame : MonoBehaviour
 
         {
             // x-axis
-            MakePrim(PrimitiveType.Cylinder, new Vector3(1, gridXZdims, 1) * 0.5f, new Vector3(gridXZdims * 0.5f, 0, 0), new Vector3(0, 0, 90), new Vector3(-0.5f, -0.5f, -0.5f), Color.red);
-            MakePrim(PrimitiveType.Cylinder, new Vector3(1, gridXZdims, 1) * 0.5f, new Vector3(gridXZdims * 0.5f, 0, gridXZdims), new Vector3(0, 0, 90), new Vector3(-0.5f, -0.5f, -0.5f), Color.red);
-            MakePrim(PrimitiveType.Cylinder, new Vector3(1, gridXZdims, 1) * 0.5f, new Vector3(gridXZdims * 0.5f, gridYdim, gridXZdims), new Vector3(0, 0, 90), new Vector3(-0.5f, -0.5f, -0.5f), Color.red);
-            MakePrim(PrimitiveType.Cylinder, new Vector3(1, gridXZdims, 1) * 0.5f, new Vector3(gridXZdims * 0.5f, gridYdim, 0), new Vector3(0, 0, 90), new Vector3(-0.5f, -0.5f, -0.5f), Color.red);
+            MakePrim(PrimitiveType.Cylinder, new Vector3(boundsThickness, gridXZdims, boundsThickness) * 0.5f, new Vector3(gridXZdims * 0.5f, 0, 0), new Vector3(0, 0, 90), new Vector3(-0.5f, -0.5f, -0.5f), Color.white);
+            MakePrim(PrimitiveType.Cylinder, new Vector3(boundsThickness, gridXZdims, boundsThickness) * 0.5f, new Vector3(gridXZdims * 0.5f, 0, gridXZdims), new Vector3(0, 0, 90), new Vector3(-0.5f, -0.5f, -0.5f), Color.white);
+            MakePrim(PrimitiveType.Cylinder, new Vector3(boundsThickness, gridXZdims, boundsThickness) * 0.5f, new Vector3(gridXZdims * 0.5f, gridYdim, gridXZdims), new Vector3(0, 0, 90), new Vector3(-0.5f, -0.5f, -0.5f), Color.white);
+            MakePrim(PrimitiveType.Cylinder, new Vector3(boundsThickness, gridXZdims, boundsThickness) * 0.5f, new Vector3(gridXZdims * 0.5f, gridYdim, 0), new Vector3(0, 0, 90), new Vector3(-0.5f, -0.5f, -0.5f), Color.white);
 
             // z-axis
-            MakePrim(PrimitiveType.Cylinder, new Vector3(1, gridXZdims, 1) * 0.5f, new Vector3(0, 0, gridXZdims * 0.5f), new Vector3(90, 0, 0), new Vector3(-0.5f, -0.5f, -0.5f), Color.blue);
-            MakePrim(PrimitiveType.Cylinder, new Vector3(1, gridXZdims, 1) * 0.5f, new Vector3(gridXZdims, 0, gridXZdims * 0.5f), new Vector3(90, 0, 0), new Vector3(-0.5f, -0.5f, -0.5f), Color.blue);
-            MakePrim(PrimitiveType.Cylinder, new Vector3(1, gridXZdims, 1) * 0.5f, new Vector3(gridXZdims, gridYdim, gridXZdims * 0.5f), new Vector3(90, 0, 0), new Vector3(-0.5f, -0.5f, -0.5f), Color.blue);
-            MakePrim(PrimitiveType.Cylinder, new Vector3(1, gridXZdims, 1) * 0.5f, new Vector3(0, gridYdim, gridXZdims * 0.5f), new Vector3(90, 0, 0), new Vector3(-0.5f, -0.5f, -0.5f), Color.blue);
+            MakePrim(PrimitiveType.Cylinder, new Vector3(boundsThickness, gridXZdims, boundsThickness) * 0.5f, new Vector3(0, 0, gridXZdims * 0.5f), new Vector3(90, 0, 0), new Vector3(-0.5f, -0.5f, -0.5f), Color.white);
+            MakePrim(PrimitiveType.Cylinder, new Vector3(boundsThickness, gridXZdims, boundsThickness) * 0.5f, new Vector3(gridXZdims, 0, gridXZdims * 0.5f), new Vector3(90, 0, 0), new Vector3(-0.5f, -0.5f, -0.5f), Color.white);
+            MakePrim(PrimitiveType.Cylinder, new Vector3(boundsThickness, gridXZdims, boundsThickness) * 0.5f, new Vector3(gridXZdims, gridYdim, gridXZdims * 0.5f), new Vector3(90, 0, 0), new Vector3(-0.5f, -0.5f, -0.5f), Color.white);
+            MakePrim(PrimitiveType.Cylinder, new Vector3(boundsThickness, gridXZdims, boundsThickness) * 0.5f, new Vector3(0, gridYdim, gridXZdims * 0.5f), new Vector3(90, 0, 0), new Vector3(-0.5f, -0.5f, -0.5f), Color.white);
 
             // y-axis
-            MakePrim(PrimitiveType.Cylinder, new Vector3(1, gridYdim, 1) * 0.5f, new Vector3(0, gridYdim * 0.5f, 0), new Vector3(0, 0, 0), new Vector3(-0.5f, -0.5f, -0.5f), Color.green);
-            MakePrim(PrimitiveType.Cylinder, new Vector3(1, gridYdim, 1) * 0.5f, new Vector3(gridXZdims, gridYdim * 0.5f, 0), new Vector3(0, 0, 0), new Vector3(-0.5f, -0.5f, -0.5f), Color.green);
-            MakePrim(PrimitiveType.Cylinder, new Vector3(1, gridYdim, 1) * 0.5f, new Vector3(0, gridYdim * 0.5f, gridXZdims), new Vector3(0, 0, 0), new Vector3(-0.5f, -0.5f, -0.5f), Color.green);
-            MakePrim(PrimitiveType.Cylinder, new Vector3(1, gridYdim, 1) * 0.5f, new Vector3(gridXZdims, gridYdim * 0.5f, gridXZdims), new Vector3(0, 0, 0), new Vector3(-0.5f, -0.5f, -0.5f), Color.green);
+            MakePrim(PrimitiveType.Cylinder, new Vector3(boundsThickness, gridYdim, boundsThickness) * 0.5f, new Vector3(0, gridYdim * 0.5f, 0), new Vector3(0, 0, 0), new Vector3(-0.5f, -0.5f, -0.5f), Color.white);
+            MakePrim(PrimitiveType.Cylinder, new Vector3(boundsThickness, gridYdim, boundsThickness) * 0.5f, new Vector3(gridXZdims, gridYdim * 0.5f, 0), new Vector3(0, 0, 0), new Vector3(-0.5f, -0.5f, -0.5f), Color.white);
+            MakePrim(PrimitiveType.Cylinder, new Vector3(boundsThickness, gridYdim, boundsThickness) * 0.5f, new Vector3(0, gridYdim * 0.5f, gridXZdims), new Vector3(0, 0, 0), new Vector3(-0.5f, -0.5f, -0.5f), Color.white);
+            MakePrim(PrimitiveType.Cylinder, new Vector3(boundsThickness, gridYdim, boundsThickness) * 0.5f, new Vector3(gridXZdims, gridYdim * 0.5f, gridXZdims), new Vector3(0, 0, 0), new Vector3(-0.5f, -0.5f, -0.5f), Color.white);
         }
 
         CreateNewPiece();
@@ -121,7 +128,7 @@ public class Tetris3Dgame : MonoBehaviour
     {
         curPiece.Clear();
 
-        int pieceID = UnityEngine.Random.Range(1, 3);
+        int pieceID = UnityEngine.Random.Range(1, 2);
 
         int a = gridXZdims / 2;
         int b = gridYdim - 1;
@@ -161,23 +168,6 @@ public class Tetris3Dgame : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
-        {
-            MovePiece(-1, 0, 0);
-        }
-        if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
-        {
-            MovePiece(1, 0, 0);
-        }
-        if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
-        {
-            MovePiece(0, 0, 1);
-        }
-        if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
-        {
-            MovePiece(0, 0, -1);
-        }
-
         if (gameCountdown <= 0)
         {
             // move the current piece down
@@ -188,6 +178,36 @@ public class Tetris3Dgame : MonoBehaviour
         else
         {
             gameCountdown--;
+        }
+
+        // calculate the centroid of curPiece
+        centroid = Vector3.zero;
+        for (int i = 0; i < curPiece.Count; ++i)
+        {
+            centroid += new Vector3(curPiece[i].x, curPiece[i].y, curPiece[i].z);
+        }
+        centroid = new Vector3(centroid.x / (float)curPiece.Count, centroid.y / (float)curPiece.Count, centroid.z / (float)curPiece.Count);
+
+        // check user input
+        if (Input.GetKeyDown(KeyCode.A))
+        {
+            MovePiece(-1, 0, 0);
+        }
+        if (Input.GetKeyDown(KeyCode.D))
+        {
+            MovePiece(1, 0, 0);
+        }
+        if (Input.GetKeyDown(KeyCode.W))
+        {
+            MovePiece(0, 0, 1);
+        }
+        if (Input.GetKeyDown(KeyCode.S))
+        {
+            MovePiece(0, 0, -1);
+        }
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            RotatePiece(0, 0, -1);
         }
 
         // sync grid and gridObjs
@@ -225,7 +245,6 @@ public class Tetris3Dgame : MonoBehaviour
             }
         }
 
-
         UpdateCameraAngle();
     }
 
@@ -234,16 +253,79 @@ public class Tetris3Dgame : MonoBehaviour
         if (curPiece.Count == 0)
             return;
 
-        float hval = gridXZdims + cameraDist;
         float rotateSpeed = 0.3f;
-        Camera.main.transform.position = new Vector3(
-            hval,
-            //Mathf.Cos(Time.time * rotateSpeed) * hval + hval * 0.5f,
-            gridYdim + cameraHeight,
-            //Mathf.Sin(Time.time * rotateSpeed) * hval + hval * 0.5f);
-            0);
+        float scrollSpeed = 0.3f;
 
-        Camera.main.transform.LookAt(curPiece[0]);
+        var mousePos = Input.mousePosition;
+
+        cameraDist -= Input.mouseScrollDelta.y * scrollSpeed;
+
+        if(Input.GetKey(KeyCode.Mouse0))
+        {
+            var mouseMoveDelta = mousePos - mousePrevPos;
+            camPitch += mouseMoveDelta.y * rotateSpeed;
+            if (camPitch > 89)
+            {
+                camPitch = 89;
+            }
+            if (camPitch < -89)
+            {
+                camPitch = -89;
+            }
+            camYaw += mouseMoveDelta.x * rotateSpeed;
+        }
+        Vector3 unitF = -Vector3.forward;
+        Vector3 unitR = Vector3.right;
+        unitF = Quaternion.AngleAxis(camYaw, Vector3.up) * unitF;
+        unitR = Quaternion.AngleAxis(camYaw, Vector3.up) * unitR;
+
+        unitF = Quaternion.AngleAxis(-camPitch, unitR) * unitF * cameraDist;
+
+        Camera.main.transform.position = new Vector3(
+            curPiece[0].x + unitF.x,
+            curPiece[0].y + unitF.y,
+            curPiece[0].z + unitF.z);
+
+        Camera.main.transform.LookAt(centroid);
+
+        mousePrevPos = mousePos;
+    }
+
+    private void RotatePiece(int dx, int dy, int dz)
+    {
+        var savedID = grid[curPiece[0].x][curPiece[0].y][curPiece[0].z];
+
+        // remove old from grid (still have curPiece pointers)
+        for (int i = 0; i < curPiece.Count; ++i)
+        {
+            grid[curPiece[i].x][curPiece[i].y][curPiece[i].z] = 0;
+        }
+
+        // check if we can move
+        bool canMove = true;
+        for (int i = 0; i < curPiece.Count; ++i)
+        {
+            // if we reach the bottom or there is a piece below
+            if (curPiece[i].y + dy < 0 || curPiece[i].y + dy >= gridYdim ||
+                curPiece[i].x + dx < 0 || curPiece[i].x + dx >= gridXZdims ||
+                curPiece[i].z + dz < 0 || curPiece[i].z + dz >= gridXZdims ||
+                grid[curPiece[i].x + dx][curPiece[i].y + dy][curPiece[i].z + dz] != 0)
+            {
+                canMove = false;
+                break;
+            }
+        }
+
+        // add it back
+        int savedCount = curPiece.Count;
+        for (int i = 0; i < savedCount; ++i)
+        {
+            AddPiecePart(
+                curPiece[i].x + ((canMove) ? dx : 0),
+                curPiece[i].y + ((canMove) ? dy : 0),
+                curPiece[i].z + ((canMove) ? dz : 0), savedID);
+        }
+        curPiece.RemoveRange(0, savedCount);
     }
 
     private void MovePiece(int dx, int dy, int dz)
@@ -282,9 +364,10 @@ public class Tetris3Dgame : MonoBehaviour
         }
         curPiece.RemoveRange(0, savedCount);
 
-        if(!canMove)
+        if(!canMove && dy < 0)
         {
             CreateNewPiece();
+            CheckForCompleteRows();
         }
     }
 
@@ -333,6 +416,8 @@ public class Tetris3Dgame : MonoBehaviour
                 }
             }
         }
+        points += removeCount;
+        pointsText.text = points.ToString();
     }
 
 }
