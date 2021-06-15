@@ -10,15 +10,20 @@ public class Tetris3Dgame : MonoBehaviour
     float cameraDist = 30;
     Vector3 mousePrevPos;
 
-    int gameSpeed = 100;
+    int gameSpeed = 1000;
     int gameCountdown = 0;
+    float cameraRotateSpeed = 0.3f;
+    float cameraScrollSpeed = 0.6f;
+    bool spaceMode = true;
+    bool controlsOn = false;
 
     int points = 0;
-    public UnityEngine.UI.Text pointsText;
+    int piecesComplete = 0;
+    public UnityEngine.UI.Text pointsText, controlsText;
     float boundsThickness = 0.2f;
 
-    const int gridXZdims = 6;
-    const int gridYdim = 10;
+    const int gridXZdims = 10;
+    const int gridYdim = 20;
     List<List<List<int>>> grid = new List<List<List<int>>>();
     List<List<List<GameObject>>> gridObjs = new List<List<List<GameObject>>>();
 
@@ -128,7 +133,7 @@ public class Tetris3Dgame : MonoBehaviour
     {
         curPiece.Clear();
 
-        int pieceID = UnityEngine.Random.Range(1, 2);
+        int pieceID = UnityEngine.Random.Range(1, 4);
 
         int a = gridXZdims / 2;
         int b = gridYdim - 1;
@@ -162,6 +167,15 @@ public class Tetris3Dgame : MonoBehaviour
                 // one sticking down
                 AddPiecePart(a - 1, b - 1, c - 1, pieceID);
                 break;
+
+            case 3:
+                // 2x2 corner
+                AddPiecePart(a, b, c, pieceID);
+                AddPiecePart(a - 1, b, c, pieceID);
+                AddPiecePart(a, b, c - 1, pieceID);
+                AddPiecePart(a - 2, b, c, pieceID);
+                AddPiecePart(a, b, c - 2, pieceID);
+                break;
         }
     }
 
@@ -174,6 +188,10 @@ public class Tetris3Dgame : MonoBehaviour
             MovePiece(0, -1, 0);
 
             gameCountdown = gameSpeed;
+            if(piecesComplete % 10 == 0)
+            {
+                gameSpeed -= 50;
+            }
         }
         else
         {
@@ -207,7 +225,51 @@ public class Tetris3Dgame : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.Q))
         {
-            RotatePiece(0, 0, -1);
+            RotatePiece(90, 0, 0);
+        }
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            RotatePiece(0, 0, 90);
+        }
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            RotatePiece(0, 90, 0);
+        }
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            controlsOn = !controlsOn;
+            if (controlsOn)
+            {
+                controlsText.text =  "WASD - Translate XZ\n";
+                controlsText.text += "Q - Rotate around X\n";
+                controlsText.text += "E - Rotate around Z\n";
+                controlsText.text += "F - Rotate around Y\n";
+                controlsText.text += "C - Hide controls Y\n";
+            }
+            else
+            {
+                controlsText.text = "Show controls: C";
+            }
+        }
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            if(spaceMode)
+            {
+                var curPiecesComplete = piecesComplete;
+                do
+                {
+                    MovePiece(0, -1, 0);
+                }
+                while (piecesComplete == curPiecesComplete);
+            }
+            else
+            {
+                MovePiece(0, -1, 0);
+            }
+        }
+        if (Input.GetKeyDown(KeyCode.LeftShift))
+        {
+            spaceMode = !spaceMode;
         }
 
         // sync grid and gridObjs
@@ -253,17 +315,14 @@ public class Tetris3Dgame : MonoBehaviour
         if (curPiece.Count == 0)
             return;
 
-        float rotateSpeed = 0.3f;
-        float scrollSpeed = 0.3f;
-
         var mousePos = Input.mousePosition;
 
-        cameraDist -= Input.mouseScrollDelta.y * scrollSpeed;
+        cameraDist -= Input.mouseScrollDelta.y * cameraScrollSpeed;
 
         if(Input.GetKey(KeyCode.Mouse0))
         {
             var mouseMoveDelta = mousePos - mousePrevPos;
-            camPitch += mouseMoveDelta.y * rotateSpeed;
+            camPitch += mouseMoveDelta.y * cameraRotateSpeed;
             if (camPitch > 89)
             {
                 camPitch = 89;
@@ -272,7 +331,7 @@ public class Tetris3Dgame : MonoBehaviour
             {
                 camPitch = -89;
             }
-            camYaw += mouseMoveDelta.x * rotateSpeed;
+            camYaw += mouseMoveDelta.x * cameraRotateSpeed;
         }
         Vector3 unitF = -Vector3.forward;
         Vector3 unitR = Vector3.right;
@@ -301,15 +360,26 @@ public class Tetris3Dgame : MonoBehaviour
             grid[curPiece[i].x][curPiece[i].y][curPiece[i].z] = 0;
         }
 
-        // check if we can move
-        bool canMove = true;
+        List<Vector3Int> rotatedCurPiece = new List<Vector3Int>();
         for (int i = 0; i < curPiece.Count; ++i)
         {
+            Vector3 vec = new Vector3(curPiece[i].x, curPiece[i].y, curPiece[i].z) - centroid;
+            vec = Quaternion.AngleAxis(dx, Vector3.right) * vec;
+            vec = Quaternion.AngleAxis(dy, Vector3.up) * vec;
+            vec = Quaternion.AngleAxis(dz, Vector3.forward) * vec;
+            vec += centroid;
+            rotatedCurPiece.Add(new Vector3Int((int)vec.x, (int)vec.y, (int)vec.z));
+        }
+
+        // check if we can move
+        bool canMove = true;
+        for (int i = 0; i < rotatedCurPiece.Count; ++i)
+        {
             // if we reach the bottom or there is a piece below
-            if (curPiece[i].y + dy < 0 || curPiece[i].y + dy >= gridYdim ||
-                curPiece[i].x + dx < 0 || curPiece[i].x + dx >= gridXZdims ||
-                curPiece[i].z + dz < 0 || curPiece[i].z + dz >= gridXZdims ||
-                grid[curPiece[i].x + dx][curPiece[i].y + dy][curPiece[i].z + dz] != 0)
+            if (rotatedCurPiece[i].y < 0 || rotatedCurPiece[i].y >= gridYdim ||
+                rotatedCurPiece[i].x < 0 || rotatedCurPiece[i].x >= gridXZdims ||
+                rotatedCurPiece[i].z < 0 || rotatedCurPiece[i].z >= gridXZdims ||
+                grid[rotatedCurPiece[i].x][rotatedCurPiece[i].y][rotatedCurPiece[i].z] != 0)
             {
                 canMove = false;
                 break;
@@ -321,9 +391,9 @@ public class Tetris3Dgame : MonoBehaviour
         for (int i = 0; i < savedCount; ++i)
         {
             AddPiecePart(
-                curPiece[i].x + ((canMove) ? dx : 0),
-                curPiece[i].y + ((canMove) ? dy : 0),
-                curPiece[i].z + ((canMove) ? dz : 0), savedID);
+                ((canMove) ? rotatedCurPiece[i].x : curPiece[i].x),
+                ((canMove) ? rotatedCurPiece[i].y : curPiece[i].y),
+                ((canMove) ? rotatedCurPiece[i].z : curPiece[i].z), savedID);
         }
         curPiece.RemoveRange(0, savedCount);
     }
@@ -366,6 +436,7 @@ public class Tetris3Dgame : MonoBehaviour
 
         if(!canMove && dy < 0)
         {
+            piecesComplete++;
             CreateNewPiece();
             CheckForCompleteRows();
         }
