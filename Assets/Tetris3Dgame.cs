@@ -20,6 +20,7 @@ public class Tetris3Dgame : MonoBehaviour
     int points = 0;
     int piecesComplete = 0;
     public UnityEngine.UI.Text pointsText, controlsText;
+    public Material pieceMat;
     float boundsThickness = 0.2f;
 
     const int gridXZdims = 5;
@@ -84,6 +85,7 @@ public class Tetris3Dgame : MonoBehaviour
                 {
                     var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
                     go.transform.position = new Vector3(i, j, k);
+                    go.GetComponent<Renderer>().material = pieceMat;
                     gridObjs[i][j].Add(go);
                 }
             }
@@ -133,7 +135,7 @@ public class Tetris3Dgame : MonoBehaviour
     {
         curPiece.Clear();
 
-        int pieceID = UnityEngine.Random.Range(1, 4);
+        int pieceID = UnityEngine.Random.Range(1, 6);
 
         int a = gridXZdims / 2;
         int b = gridYdim - 1;
@@ -142,6 +144,11 @@ public class Tetris3Dgame : MonoBehaviour
         switch(pieceID)
         {
             case 1:
+                // 1x1x1 cube
+                AddPiecePart(a, b, c, pieceID);
+                break;
+
+            case 2:
                 // 2x2x2 cube
                 AddPiecePart(a, b, c, pieceID);
                 AddPiecePart(a - 1, b, c, pieceID);
@@ -153,28 +160,35 @@ public class Tetris3Dgame : MonoBehaviour
                 AddPiecePart(a - 1, b - 1, c - 1, pieceID);
                 break;
 
-            case 2:
+            case 3:
                 // 3x3 plane
                 AddPiecePart(a, b, c, pieceID);
-                AddPiecePart(a - 1, b, c, pieceID);
-                AddPiecePart(a, b, c - 1, pieceID);
-                AddPiecePart(a - 1, b, c - 1, pieceID);
-                AddPiecePart(a - 2, b, c, pieceID);
-                AddPiecePart(a, b, c - 2, pieceID);
-                AddPiecePart(a - 2, b, c - 2, pieceID);
-                AddPiecePart(a - 2, b, c - 1, pieceID);
-                AddPiecePart(a - 1, b, c - 2, pieceID);
-                // one sticking down
-                AddPiecePart(a - 1, b - 1, c - 1, pieceID);
+                //AddPiecePart(a - 1, b, c, pieceID);
+                //AddPiecePart(a, b, c - 1, pieceID);
+                //AddPiecePart(a - 1, b, c - 1, pieceID);
+                //AddPiecePart(a - 2, b, c, pieceID);
+                //AddPiecePart(a, b, c - 2, pieceID);
+                //AddPiecePart(a - 2, b, c - 2, pieceID);
+                //AddPiecePart(a - 2, b, c - 1, pieceID);
+                //AddPiecePart(a - 1, b, c - 2, pieceID);
+                //// one sticking down
+                //AddPiecePart(a - 1, b - 1, c - 1, pieceID);
                 break;
 
-            case 3:
-                // 2x2 corner
+            case 4:
+                // 2x2 elbow
                 AddPiecePart(a, b, c, pieceID);
                 AddPiecePart(a - 1, b, c, pieceID);
                 AddPiecePart(a, b, c - 1, pieceID);
                 AddPiecePart(a - 2, b, c, pieceID);
                 AddPiecePart(a, b, c - 2, pieceID);
+                break;
+
+            case 5:
+                // 1x3 stick
+                AddPiecePart(a, b, c, pieceID);
+                AddPiecePart(a, b - 1, c, pieceID);
+                AddPiecePart(a, b - 2, c, pieceID);
                 break;
         }
     }
@@ -240,11 +254,14 @@ public class Tetris3Dgame : MonoBehaviour
             controlsOn = !controlsOn;
             if (controlsOn)
             {
-                controlsText.text =  "WASD - Translate XZ\n";
-                controlsText.text += "Q - Rotate around X\n";
-                controlsText.text += "E - Rotate around Z\n";
-                controlsText.text += "F - Rotate around Y\n";
-                controlsText.text += "C - Hide controls Y\n";
+                controlsText.text =  "WASD   - move horizontal\n";
+                controlsText.text += "QE     - rotate vertical\n";
+                controlsText.text += "F      - rotate horizontal\n";
+                controlsText.text += "Space  - drop piece\n";
+                controlsText.text += "Scroll - zoom\n";
+                controlsText.text += "\n";
+                controlsText.text += "C          - toggle controls\n";
+                controlsText.text += "Left shift - toggle spacebar mode\n";
             }
             else
             {

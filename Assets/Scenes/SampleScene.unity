@@ -428,6 +428,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pointsText: {fileID: 522944141}
   controlsText: {fileID: 1067270307}
+  pieceMat: {fileID: 2100000, guid: e1786a5b0328c7745a08dc19a6e1b556, type: 2}
 --- !u!1 &845587520
 GameObject:
   m_ObjectHideFlags: 0
