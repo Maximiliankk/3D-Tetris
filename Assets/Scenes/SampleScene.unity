@@ -427,6 +427,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pointsText: {fileID: 522944141}
+  controlsText: {fileID: 1067270307}
 --- !u!1 &845587520
 GameObject:
   m_ObjectHideFlags: 0
@@ -714,7 +715,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 0, y: -36.71}
-  m_SizeDelta: {x: 160, y: 30}
+  m_SizeDelta: {x: 160, y: 205.66}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1067270307
 MonoBehaviour:

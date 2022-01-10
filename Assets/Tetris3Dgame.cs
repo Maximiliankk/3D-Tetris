@@ -22,7 +22,7 @@ public class Tetris3Dgame : MonoBehaviour
     public UnityEngine.UI.Text pointsText, controlsText;
     float boundsThickness = 0.2f;
 
-    const int gridXZdims = 10;
+    const int gridXZdims = 5;
     const int gridYdim = 20;
     List<List<List<int>>> grid = new List<List<List<int>>>();
     List<List<List<GameObject>>> gridObjs = new List<List<List<GameObject>>>();
