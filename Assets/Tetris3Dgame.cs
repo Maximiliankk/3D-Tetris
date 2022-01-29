@@ -84,6 +84,7 @@ public class Tetris3Dgame : MonoBehaviour
                 for (int k = 0; k < gridXZdims; ++k)
                 {
                     var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                    go.transform.localScale = new Vector3(1,1,1) * 0.9f;
                     go.transform.position = new Vector3(i, j, k);
                     go.GetComponent<Renderer>().material = pieceMat;
                     gridObjs[i][j].Add(go);
@@ -357,10 +358,24 @@ public class Tetris3Dgame : MonoBehaviour
 
         unitF = Quaternion.AngleAxis(-camPitch, unitR) * unitF * cameraDist;
 
-        Camera.main.transform.position = new Vector3(
+        Vector3 targetPos = new Vector3(
             curPiece[0].x + unitF.x,
             curPiece[0].y + unitF.y,
             curPiece[0].z + unitF.z);
+
+        Vector3 targetDist = Camera.main.transform.position - targetPos;
+
+        // unless we are close enough, push toward the target
+        //if (targetDist.magnitude > 0.1f)
+        if(false)
+        {
+            Camera.main.transform.position -= targetDist.normalized * 0.001f;
+        }
+        else
+        {
+            // otherwise set to target
+            Camera.main.transform.position = targetPos;
+        }
 
         Camera.main.transform.LookAt(centroid);
 
@@ -403,15 +418,28 @@ public class Tetris3Dgame : MonoBehaviour
             }
         }
 
-        // add it back
         int savedCount = curPiece.Count;
-        for (int i = 0; i < savedCount; ++i)
+        if (canMove)
         {
-            AddPiecePart(
-                ((canMove) ? rotatedCurPiece[i].x : curPiece[i].x),
-                ((canMove) ? rotatedCurPiece[i].y : curPiece[i].y),
-                ((canMove) ? rotatedCurPiece[i].z : curPiece[i].z), savedID);
+            for (int i = 0; i < savedCount; ++i)
+            {
+                AddPiecePart(
+                    rotatedCurPiece[i].x,
+                    rotatedCurPiece[i].y,
+                    rotatedCurPiece[i].z, savedID);
+            }
         }
+        else 
+        {
+            for (int i = 0; i < savedCount; ++i)
+            {
+                AddPiecePart(
+                    curPiece[i].x,
+                    curPiece[i].y,
+                    curPiece[i].z, savedID);
+            }
+        }
+        
         curPiece.RemoveRange(0, savedCount);
     }
 
